@@ -19,31 +19,27 @@ epsilon = 0.1
 training_steps = 100000
 
 for iter in range(training_steps):
-    state = env.reset()
+    _ = env.reset()
 
     epoch = 0
     done = False
     
     while not done:
-        agent = state['agent']
-        idx = env._get_agent_idx()
+        agent_idx = env._get_agent_idx()
 
         if random.uniform(0, 1) < epsilon:
             action = env.action_space.sample() # Explore action space
         else:
-            action = np.argmax(q_table[idx]) # Exploit learned values
+            action = np.argmax(q_table[agent_idx]) # Exploit learned values
 
-        next_state, reward, done, _ = env.step(action) 
-        next_agent = next_state['agent']
-        next_idx = env._get_agent_idx()
+        _, reward, done, _ = env.step(action) 
         
-        old_value = q_table[idx, action]
-        next_max = np.max(q_table[next_idx])
+        old_value = q_table[agent_idx, action]
+        next_max = np.max(q_table[env._get_agent_idx()])
         
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
-        q_table[idx, action] = new_value
+        q_table[agent_idx, action] = new_value
 
-        state = next_state
         epoch += 1
         
     if iter % 100 == 0:
